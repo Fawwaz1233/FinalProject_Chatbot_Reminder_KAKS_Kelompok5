@@ -121,6 +121,13 @@ def extract_schedule_from_image(image_base64, current_dt):
         print(f"Error extracting schedule from image: {e}")
         return None
 
+def preprocess_relative_day(text, current_dt):
+    if re.search(r'\bday after tomorrow\b', text, re.IGNORECASE):
+        return (current_dt + timedelta(days=2)).strftime("%Y-%m-%d")
+    if re.search(r'\btomorrow\b', text, re.IGNORECASE):
+        return (current_dt + timedelta(days=1)).strftime("%Y-%m-%d")
+    return None
+
 # Extract Entities Using Cohere
 def extract_entities(text):
     try:
@@ -185,12 +192,21 @@ def extract_entities(text):
             normalized_data['time'] = forced_time
             normalized_data['start_date'] = forced_date
 
+        forced_day = preprocess_relative_day(text, current_dt)
+        if forced_day and not forced_time:
+            normalized_data['start_date'] = forced_day
+            freq = str(normalized_data.get('frequency') or '').lower()
+            if freq not in ('weekly', 'daily') or normalized_data.get('end_date', '') < forced_day:
+                normalized_data['end_date'] = forced_day
+                normalized_data['frequency'] = 'once'
+
         forced_end_date, forced_frequency = preprocess_duration_and_frequency(text, current_dt)
         if forced_end_date:
             normalized_data['end_date'] = forced_end_date
         if forced_frequency:
             normalized_data['frequency'] = forced_frequency
-
+        
+        print("FINAL entities:", normalized_data)
         return normalized_data
 
 

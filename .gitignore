@@ -1,0 +1,21 @@
+# Rahasia / environment
+.env
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Database lokal
+*.db
+*.sqlite
+*.sqlite3
+
+# Editor dan OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
